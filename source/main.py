@@ -11,28 +11,10 @@ column_translator = {
     'rooms': 'Rooms',
     'link': 'Link',
     'elevator': 'Elevator',
-    'floor': 'Floor',
     'info_card_type': 'Type',
     'parking': 'Parking',
     'surface': 'M2'
 }
-
-# fotocasa = pd.read_csv('output_fotocasa.csv')
-# idealista = pd.read_csv('output_idealista.csv')
-# fotocasa_aleks = pd.read_csv('./fotocasa_vilanova_i_geltru_output.csv', encoding='latin-1')
-#
-# print(f'Original columns on Idealista dataset: {idealista.columns}')
-# print(f'Original columns on Fotocasa-Aleks dataset: {fotocasa_aleks.columns}')
-# fotocasa.insert(loc=fotocasa_aleks.shape[1], column='Fuente', value=['fotocasa' for i in range(fotocasa_aleks.shape[0])])
-# fotocasa_aleks.insert(loc=fotocasa_aleks.shape[1], column='Fuente', value=['fotocasa' for i in range(fotocasa_aleks.shape[0])])
-#
-# fotocasa_aleks = fotocasa_aleks.rename(columns=column_translator)
-# fotocasa_aleks = fotocasa_aleks[idealista.columns]
-# print(f'Filtered columns on Fotocasa-Aleks dataset: {fotocasa_aleks.columns}')
-# merged = pd.concat([fotocasa_aleks, idealista]).reset_index(drop=True)
-# merged = merged.drop_duplicates(subset=['Link'], keep='first')
-#
-# merged.to_csv(path_or_buf='../data/output_concat.csv')
 
 if __name__ == '__main__':
 

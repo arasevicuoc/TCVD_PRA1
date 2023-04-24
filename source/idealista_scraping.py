@@ -21,7 +21,6 @@ features_to_scrape = [
     'link',
     'room',
     'squaremeters',
-    'floor',
     'parking'
 ]
 
@@ -63,7 +62,7 @@ def _get_non_generic_information(info_container: BeautifulSoup) -> dict:
     """
     Get information based on our scraping interests and the stuctural
     restrictions of the scraped website. For our scenario, we're interested
-    in the number of rooms, squaremeters, floor and parking.
+    in the number of rooms, squaremeters and parking.
 
     :param info_container: BeautifulSoup object holding the information to be
       extract
@@ -75,15 +74,12 @@ def _get_non_generic_information(info_container: BeautifulSoup) -> dict:
     # information available for scraping:
     room = None
     squaremeters = None
-    floor = None
     # information shows up in a positional fashion. Longer objects
     # might contain other information we're not currently interested in
     if len(detail) > 0:
         room = detail[0].text.strip()
     if len(detail) > 1:
         squaremeters = detail[1].text.strip()
-    if len(detail) > 2:
-        floor = detail[2].text.strip()
 
     # finally, search for parking information
     parking = info_container.find('span', {'class': 'item-parking'})
@@ -91,7 +87,6 @@ def _get_non_generic_information(info_container: BeautifulSoup) -> dict:
     return {
         'room': room if room is not None else '-',
         'squaremeters': squaremeters if squaremeters is not None else '-',
-        'floor': floor if floor is not None else '-',
         'parking': 'Si' if parking is not None else 'No'
     }
 
