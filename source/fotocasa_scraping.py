@@ -47,21 +47,16 @@ def _initialize_driver(executable_path: str=r'chromedriver') -> webdriver.Chrome
     return driver
 
 
-def _get_cookies_element(driver: webdriver.Chrome) -> webdriver.Chrome.find_element:
+def _click_cookies_element(driver: webdriver.Chrome):
     """
-    In the first page we need to accept cookies, select between buy/rental and
-    input a search area. We compress these operations and return the xpath
-    for the cookies element, which will be pushed in subsequent tries.
+    In the first page we need to accept cookies so we are not forbidden
+    from subsequent tries to access the URL
 
     :param driver: an initialized webdriver.Chrome instance
-    :param keys: the area to search
-    :return: the 'accept cookies' button xpath
     """
     time.sleep(2)
     cookies = driver.find_element('xpath', './/div[@class="sui-TcfFirstLayer-buttons"]//button[@class="sui-AtomButton sui-AtomButton--primary sui-AtomButton--solid sui-AtomButton--center "]')
     cookies.click()
-
-    return cookies
 
 def _scroll_page_down(iterations: int, delay: int, driver: webdriver.Chrome):
     """
@@ -226,7 +221,7 @@ def _dump_to_dataframe(all_info: dict):
 
 def scrape_fotocasa(base_url: str='https://www.fotocasa.es/es/comprar/viviendas/',
                     area: str="Vilanova i la Geltrú",
-                    csv_name: str=f"./data/fotocasa.csv",
+                    csv_name: str=f"../data/fotocasa.csv",
                     page_index_limit: int=20):
     """
     Main method to be called by external libraries. Scrapes the portal Fotocasa
@@ -245,7 +240,7 @@ def scrape_fotocasa(base_url: str='https://www.fotocasa.es/es/comprar/viviendas/
 
     driver = _initialize_driver()
     driver.get(base_url + area_filter + '/todas-las-zonas/l')
-    cookies = _get_cookies_element(driver)
+    _get_cookies_element(driver)
 
     current_page = str(driver.current_url)
 
@@ -286,8 +281,9 @@ def scrape_fotocasa(base_url: str='https://www.fotocasa.es/es/comprar/viviendas/
             driver.quit()
             time.sleep(4)
             driver = _initialize_driver()
-            cookies.click()
             driver.get(next_page)
+            time.sleep(4)
+            _click_cookies_element(driver)
         else:
             all_pages_traversed = True
         page_index += 1
@@ -297,5 +293,5 @@ def scrape_fotocasa(base_url: str='https://www.fotocasa.es/es/comprar/viviendas/
     return _dump_to_dataframe(all_info)
 
 if __name__ == '__main__':
-    scrape_fotocasa(page_index_limit=2)
+    scrape_fotocasa(page_index_limit=3)
 
