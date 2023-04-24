@@ -14,6 +14,7 @@ from bs4 import BeautifulSoup
 from selenium.webdriver.common.action_chains import ActionChains
 import re
 import pandas as pd
+from unidecode import unidecode
 
 info_card_types = [
     'Premium', 'Advance', 'Basic', 'Minimal'
@@ -46,7 +47,7 @@ def _initialize_driver(executable_path: str=r'chromedriver') -> webdriver.Chrome
     return driver
 
 
-def _initial_search(driver: webdriver.Chrome, keys: str) -> webdriver.Chrome.find_element:
+def _get_cookies_element(driver: webdriver.Chrome) -> webdriver.Chrome.find_element:
     """
     In the first page we need to accept cookies, select between buy/rental and
     input a search area. We compress these operations and return the xpath
@@ -59,15 +60,6 @@ def _initial_search(driver: webdriver.Chrome, keys: str) -> webdriver.Chrome.fin
     time.sleep(2)
     cookies = driver.find_element('xpath', './/div[@class="sui-TcfFirstLayer-buttons"]//button[@class="sui-AtomButton sui-AtomButton--primary sui-AtomButton--solid sui-AtomButton--center "]')
     cookies.click()
-
-    time.sleep(2)
-    alquiler = driver.find_element('xpath', './/div[@class="re-HomeSearchSelector-item re-HomeSearchSelector-item--buy"]')
-    alquiler.click()
-
-    time.sleep(2)
-    filtro = driver.find_element('xpath', './/div[@class="sui-AtomInput--withIcon sui-AtomInput--withIcon--right"]//input[@class="sui-AtomInput-input sui-AtomInput-input-size-m"]')
-    filtro.send_keys(keys)
-    filtro.send_keys(Keys.RETURN)
 
     return cookies
 
@@ -161,8 +153,8 @@ def _get_generic_information(info_card: BeautifulSoup, info_card_type: str) -> d
     return {'title': title, 'link': link, 'info_card_type': info_card_type,
             'price': price.get_text()}
 
-def _get_next_page(soup: BeautifulSoup, base_url: str, current_page: str,
-                   page_index: int, page_index_limit: int = 20) -> str:
+def _get_next_page(soup: BeautifulSoup, base_url: str, area_filter: str,
+                   current_page: str, page_index: int, page_index_limit: int = 20) -> str:
     """
     Get either the URL for the next page to be scraped, or None if several
     conditions take place:
@@ -179,10 +171,10 @@ def _get_next_page(soup: BeautifulSoup, base_url: str, current_page: str,
       to be scraped
     :return: URL to the next page or None
     """
-    next_page_links = soup.find_all('a', {'shape': 'rounded'})
-    next_page_link = next_page_links[-1]
-    next_page = base_url[:-4] + next_page_link['href']
-    if next_page_link == current_page or page_index == page_index_limit:
+    next_page = base_url + area_filter + '/todas-las-zonas/l/' + str(page_index)
+    # https://www.fotocasa.es/es/comprar/viviendas/vilanova-i-la-geltru/todas-las-zonas/l/2
+    # https://www.fotocasa.es/es/comprar/viviendas/espana/todas-las-zonas/l/2?text=Vilanova+i+la+Geltrú
+    if page_index == page_index_limit:
         return None
     else:
         return next_page
@@ -232,7 +224,7 @@ def _dump_to_dataframe(all_info: dict):
         df = df.append(pd.DataFrame.from_records(all_info[page], columns=unique_fields))
     return df
 
-def scrape_fotocasa(base_url: str='https://www.fotocasa.es/es/',
+def scrape_fotocasa(base_url: str='https://www.fotocasa.es/es/comprar/viviendas/',
                     area: str="Vilanova i la Geltrú",
                     csv_name: str=f"./data/fotocasa.csv",
                     page_index_limit: int=20):
@@ -249,9 +241,12 @@ def scrape_fotocasa(base_url: str='https://www.fotocasa.es/es/',
     :return: a pandas DataFrame and stores a CSV with the same information as
       a side-effect
     """
+    area_filter = unidecode(area).lower().replace(" ", "-")
+
     driver = _initialize_driver()
-    driver.get(base_url)
-    cookies = _initial_search(driver, keys=area)
+    driver.get(base_url + area_filter + '/todas-las-zonas/l')
+    cookies = _get_cookies_element(driver)
+
     current_page = str(driver.current_url)
 
     page_index = 1
@@ -281,8 +276,10 @@ def scrape_fotocasa(base_url: str='https://www.fotocasa.es/es/',
                     feature_lines.append(feature_line)
 
         all_info[f'page_{page_index}'] = feature_lines
-        next_page = _get_next_page(soup, base_url, current_page,
-                                   page_index, page_index_limit)
+        print(current_page)
+        next_page = _get_next_page(soup, base_url, area_filter, current_page,
+                                   page_index + 1, page_index_limit)
+        print(next_page)
 
         # Reinstantiante the driver to continue the scraping
         if next_page is not None:
@@ -300,5 +297,5 @@ def scrape_fotocasa(base_url: str='https://www.fotocasa.es/es/',
     return _dump_to_dataframe(all_info)
 
 if __name__ == '__main__':
-    scrape_fotocasa()
+    scrape_fotocasa(page_index_limit=2)
 
