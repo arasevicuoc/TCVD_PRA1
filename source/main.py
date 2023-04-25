@@ -21,19 +21,14 @@ if __name__ == '__main__':
     # Initalization of variables and information fetching
 
     area_to_scrape = "Vilanova i la Geltrú"
-    area_csv_name = unidecode(area_to_scrape).lower().replace(" ", "-")
-    execution_timestamp = datetime.today().strftime('%Y-%m-%d')
-    fdf = fts.scrape_fotocasa(
-        area="Vilanova i la Geltrú",
-        csv_name=f"../data/fotocasa_{area_csv_name}_{execution_timestamp}.csv",
-        page_index_limit=2
-    )
-    idf = ids.scrape_idealista(
-        csv_name=f"../data/idealista_{area_csv_name}_{execution_timestamp}.csv",
-        page_index_limit=2
-    )
+    fdf = fts.scrape_fotocasa(area=area_to_scrape, page_index_limit=2)
 
-    # Normalize the names on both DataFrames and add a source column
+    # as the URL construction is considerably harder for Idealista, it is
+    # hardcoded to scrape the area "Vilanova i la Geltrú"
+
+    idf = ids.scrape_idealista(page_index_limit=2)
+
+    ## Normalize the names on both DataFrames and add a source column
 
     fdf = fdf.rename(columns=column_translator)
     idf = idf.rename(columns=column_translator)
@@ -49,4 +44,4 @@ if __name__ == '__main__':
 
     merged = pd.concat([fdf_filtered, idf]).reset_index(drop=True)
     merged = merged.drop_duplicates(subset=['Link'], keep='first')
-    merged.to_csv(path_or_buf='../data/output_concat.csv')
+    merged.to_csv(path_or_buf='../data/output_concat.csv', index=False)

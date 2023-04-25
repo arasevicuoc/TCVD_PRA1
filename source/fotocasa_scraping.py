@@ -221,7 +221,7 @@ def _dump_to_dataframe(all_info: dict):
 
 def scrape_fotocasa(base_url: str='https://www.fotocasa.es/es/comprar/viviendas/',
                     area: str="Vilanova i la Geltrú",
-                    csv_name: str=f"../data/fotocasa.csv",
+                    csv_name: str=f"../data/output_fotocasa.csv",
                     page_index_limit: int=20):
     """
     Main method to be called by external libraries. Scrapes the portal Fotocasa
@@ -240,7 +240,7 @@ def scrape_fotocasa(base_url: str='https://www.fotocasa.es/es/comprar/viviendas/
 
     driver = _initialize_driver()
     driver.get(base_url + area_filter + '/todas-las-zonas/l')
-    _get_cookies_element(driver)
+    _click_cookies_element(driver)
 
     current_page = str(driver.current_url)
 
