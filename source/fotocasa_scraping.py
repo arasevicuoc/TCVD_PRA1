@@ -43,6 +43,7 @@ def _initialize_driver(executable_path: str=r'chromedriver') -> webdriver.Chrome
     """
     options = webdriver.ChromeOptions()
     driver = webdriver.Chrome(executable_path=executable_path, options=options)
+    print(f'User agent performing the task: {driver.execute_script("return navigator.userAgent;")}')
     driver.set_window_size(1280, 800)
     return driver
 
